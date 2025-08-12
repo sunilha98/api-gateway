@@ -1,6 +1,6 @@
 package com.resourcemanagement.gateway.config;
 
-import com.resourcemanagement.gateway.blacklisteds.service.BlacklistedTokenService;
+import io.jsonwebtoken.Claims;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -8,20 +8,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 
 @Component
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final BlacklistedTokenService blacklistedTokenService;
+//    private final BlacklistedTokenService blacklistedTokenService;
 
-    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, BlacklistedTokenService blacklistedTokenService) {
+    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil) {
         super(Config.class);
         this.jwtTokenUtil = jwtTokenUtil;
-        this.blacklistedTokenService = blacklistedTokenService;
+//        this.blacklistedTokenService = blacklistedTokenService;
     }
 
     @Override
@@ -37,9 +35,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             String token = authHeader.replace("Bearer ", "");
 
-            if (blacklistedTokenService.isBlacklisted(token)) {
-                return this.onError(response, HttpStatus.UNAUTHORIZED, "Token has been blacklisted");
-            }
+//            if (blacklistedTokenService.isBlacklisted(token)) {
+//                return this.onError(response, HttpStatus.UNAUTHORIZED, "Token has been blacklisted");
+//            }
 
             if (!jwtTokenUtil.validateToken(token)) {
                 return this.onError(response, HttpStatus.UNAUTHORIZED, "Invalid or expired token");
