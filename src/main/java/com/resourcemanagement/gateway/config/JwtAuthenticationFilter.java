@@ -1,5 +1,6 @@
 package com.resourcemanagement.gateway.config;
 
+import com.resourcemanagement.gateway.blacklisteds.service.BlacklistedTokenService;
 import io.jsonwebtoken.Claims;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -14,12 +15,12 @@ import reactor.core.publisher.Mono;
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
 
     private final JwtTokenUtil jwtTokenUtil;
-//    private final BlacklistedTokenService blacklistedTokenService;
+    private final BlacklistedTokenService blacklistedTokenService;
 
-    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil) {
+    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, BlacklistedTokenService blacklistedTokenService) {
         super(Config.class);
         this.jwtTokenUtil = jwtTokenUtil;
-//        this.blacklistedTokenService = blacklistedTokenService;
+        this.blacklistedTokenService = blacklistedTokenService;
     }
 
     @Override
@@ -35,9 +36,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             String token = authHeader.replace("Bearer ", "");
 
-//            if (blacklistedTokenService.isBlacklisted(token)) {
-//                return this.onError(response, HttpStatus.UNAUTHORIZED, "Token has been blacklisted");
-//            }
+            if (blacklistedTokenService.isBlacklisted(token)) {
+                return this.onError(response, HttpStatus.UNAUTHORIZED, "Token has been blacklisted");
+            }
 
             if (!jwtTokenUtil.validateToken(token)) {
                 return this.onError(response, HttpStatus.UNAUTHORIZED, "Invalid or expired token");
